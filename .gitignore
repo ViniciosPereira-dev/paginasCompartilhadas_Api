@@ -1,0 +1,16 @@
+# dependências
+node_modules/
+
+# variáveis de ambiente
+.env
+
+# build / cache
+dist/
+build/
+
+# prisma
+src/generated/prisma/
+
+# logs
+npm-debug.log*
+yarn-debug.log*

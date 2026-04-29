@@ -59,58 +59,76 @@ export const createRequest = async (req, res) => {
 
 // Controlador para aceitar uma requisição de livro
 export async function acceptRequest(req, res) {
-    try{
+    try {
         const id = Number(req.params.id);
 
-        if(isNaN(id)){
-            return res.status(400).json({error: "ID deve ser um número"});
+        if (isNaN(id)) {
+            return res.status(400).json({ error: "ID deve ser um número" });
         }
 
         const request = await prisma.request.findUnique({
-            where: {id},
+            where: { id },
             include: {
+                user: true,
                 book: true
             }
+
         });
 
-        if(!request){
-            return res.status(404).json({error: "Requisição não encontrada"});
+        if (!request) {
+            return res.status(404).json({ error: "Requisição não encontrada" });
         }
 
-        if(request.status !== "PENDING"){
-            return res.status(400).json({error: "Requisição ja foi processada"});
+        if (request.status !== "PENDING") {
+            return res.status(400).json({ error: "Requisição já foi processada" });
         }
 
-        const alreadyAccepted = await prisma.request.findFirst({
-            where: {
-                bookId: request.bookId,
-                status: "ACCEPTED"
-            }
-        });
-
-        if (alreadyAccepted) {
+        if (request.book.status !== "AVAILABLE") {
             return res.status(400).json({
-                error: "Este livro já foi aceito por outro usuário"
+                error: "Este livro já está em processo ou foi doado"
             });
         }
 
         await prisma.request.update({
-            where: {id},
+            where: { id },
+            data: { status: "ACCEPTED" }
+        });
+
+        await prisma.request.updateMany({
+            where: {
+                bookId: request.bookId,
+                id: { not: id }
+            },
             data: {
-                status: "ACCEPTED"
+                status: "REJECTED"
             }
         });
 
         await prisma.book.update({
-            where: {id: request.bookId},
-            data: {
-                status: "REQUESTED"
+            where: { id: request.bookId },
+            data: { status: "REQUESTED" }
+        });
+
+        return res.status(200).json({
+            message: "Requisição aceita com sucesso, demais foram canceladas",
+                request: {
+                id: request.id,
+                user: {
+                    id: request.user.id,
+                    name: request.user.name,
+                    phone: request.user.phone,
+                },
+                book: {
+                    id: request.book.id,
+                    title: request.book.title,
+                    author: request.book.author,
+                    descricao: request.book.description,
+                }
             }
         });
 
-        return res.status(200).json({message: "Requisição aceita com sucesso"});
     } catch (error) {
-        return res.status(500).json({error: "Erro interno do servidor"});
+        return res.status(500).json({ error: "Erro interno do servidor" });
     }
 }
 
@@ -163,7 +181,8 @@ export async function finalizeRequest(req, res) {
         const request = await prisma.request.findUnique({
             where: {id},
             include: {
-                book: true
+                book: true,
+                user: true
             }
         });
 
@@ -193,7 +212,20 @@ export async function finalizeRequest(req, res) {
             }
         });
 
-        return res.status(200).json({message: "Requisição finalizada com sucesso"});
+        return res.status(200).json({message: "Requisição finalizada com sucesso", request: {
+            id: request.id,
+            user: {
+                id: request.user.id,
+                name: request.user.name,
+                phone: request.user.phone,
+            },
+            book: {
+                id: request.book.id,
+                title: request.book.title,
+                author: request.book.author,
+                descricao: request.book.description
+            }
+        }});
     } catch (error) {
         return res.status(500).json({error: "Erro interno do servidor"});
     }

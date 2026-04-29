@@ -1,4 +1,7 @@
 import { PrismaClient } from "@prisma/client";
+import { success, error } from "../utils/response.js";
+
+
 const prisma = new PrismaClient();
 
 // Controlador para criar um novo usuário - CREATE
@@ -8,13 +11,13 @@ export async function createUser(req, res) {
 
         // Validação básica dos campos obrigatórios
         if(!name || !email || !password){
-            return res.status(400).json({ error: "Nome, email e senha são obrigatórios" });
+            return error(res, "Nome, email e senha são obrigatórios", 400);
         }
 
         // Verificar se o email já está cadastrado
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if(existingUser){
-            return res.status(400).json({ error: "Email já cadastrado" });
+            return error(res, "Email já cadastrado", 400);
         }
 
         // Criar o usuário no banco de dados
@@ -31,9 +34,9 @@ export async function createUser(req, res) {
 
         const { password: _, ...userWithoutPassword } = user; // Excluir a senha da resposta
 
-        res.status(201).json(userWithoutPassword);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+        return success(res, "Usuário criado com sucesso", userWithoutPassword, 201);
+    } catch (err) {
+        return error(res, "Erro ao criar usuário :" + err.message, 500);
     }
 }
 
@@ -43,9 +46,10 @@ export async function findAllUsers(req, res) {
         const users = await prisma.user.findMany();
         const usersWithoutPasswords = users.map(({ password, ...user }) => user);
 
-        res.json(usersWithoutPasswords);
-    } catch (error) {
-        res.status(500).json({ error: "Erro ao buscar usuários :" + error.message });
+        return success(res, "Usuários encontrados", usersWithoutPasswords);
+
+    } catch (err) {
+        return error(res, "Erro ao buscar usuários :" + err.message, 500);
     }
 }
 
@@ -55,19 +59,19 @@ export async function findUserById(req, res) {
         const id = Number(req.params.id);
 
         if(isNaN(id)){
-            return res.status(400).json({ error: "ID inválido" });
+            return error(res, "ID inválido", 400);
         }
 
         const user = await prisma.user.findUnique({ where: { id: parseInt(id) }, include: { books: true } });
 
         if(!user){
-            return res.status(404).json({ error: "Usuário não encontrado" });
+            return error(res, "Usuário não encontrado", 404);
         }
 
         const { password: _, ...userWithoutPassword } = user;
-        res.json(userWithoutPassword);
-    } catch (error) {
-        res.status(500).json({ error: "Erro ao buscar usuário : " + error.message });
+        return success(res, "Usuário encontrado", userWithoutPassword);
+    } catch (err) {
+        return error(res, "Erro ao buscar usuário :" + err.message, 500);
     }
 }
 
@@ -77,7 +81,7 @@ export async function updateUser(req, res) {
         const id = Number(req.params.id);
 
         if(isNaN(id)){
-            return res.status(400).json({ error: "ID inválido" });
+            return error(res, "ID inválido", 400);
         }
 
         const { name, email, password, age, gender, phone } = req.body;
@@ -95,14 +99,18 @@ export async function updateUser(req, res) {
         });
 
         const { password: _, ...userWithoutPassword } = user;
-        res.json(userWithoutPassword);
-    } catch (error) {
+        return success(res, "Usuário atualizado com sucesso", userWithoutPassword);
+    } catch (err) {
 
-        if(error.code === "P2025"){
-            return res.status(404).json({ error: "Usuário não encontrado" });
+        if(err.code === "P2025"){
+            return error(res, "Usuário não encontrado", 404);
         }
 
-        res.status(500).json({ error: "Erro ao atualizar usuário :" + error.message });
+        if (err.code === "P2002") {
+            return error(res, "Email já está em uso", 400);
+        }
+
+        return error(res, "Erro ao atualizar usuário :" + err.message, 500);
     }
 }
 
@@ -112,19 +120,19 @@ export async function deleteUser(req, res) {
         const id = Number(req.params.id);
 
         if(isNaN(id)){
-            return res.status(400).json({ error: "ID inválido" });
+            return error(res, "ID inválido", 400);
         }
 
         await prisma.user.delete({
             where: { id: parseInt(id) }
         });
 
-        res.status(200).json({ message: "Usuário deletado com sucesso" });
-    } catch (error) {
-        if(error.code === "P2025"){
-            return res.status(404).json({ error: "Usuário não encontrado" });
+        return success(res, "Usuário deletado com sucesso");
+    } catch (err) {
+        if(err.code === "P2025"){
+            return error(res, "Usuário não encontrado", 404);
         }
 
-        res.status(500).json({ error: "Erro ao deletar usuário :" + error.message });
+        return error(res, "Erro ao deletar usuário :" + err.message, 500);
     }
 }

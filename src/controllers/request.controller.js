@@ -1,42 +1,48 @@
 import { PrismaClient } from "@prisma/client";
+import { success, error } from "../utils/response.js";
+
 const prisma = new PrismaClient();
 
-// Controlador para criar uma nova requisição de livro
+// CREATE REQUEST
 export const createRequest = async (req, res) => {
-    try{
-        const {userId, bookId} = req.body;
+    try {
+        const { userId, bookId } = req.body;
 
         const userIdNumber = Number(userId);
         const bookIdNumber = Number(bookId);
 
-        if(isNaN(userIdNumber) || isNaN(bookIdNumber)){
-            return res.status(400).json({error: "IDs devem ser números"});
+        if (isNaN(userIdNumber) || isNaN(bookIdNumber)) {
+            return error(res, "IDs devem ser números", 400);
         }
 
         const book = await prisma.book.findUnique({
-            where: {id: bookIdNumber}
+            where: { id: bookIdNumber }
         });
 
         const user = await prisma.user.findUnique({
-            where: {id: userIdNumber}
+            where: { id: userIdNumber }
         });
 
-        if(!user){
-            return res.status(404).json({error: "Usuário não encontrado"});
+        if (!user) {
+            return error(res, "Usuário não encontrado", 404);
         }
 
-        if(!book){
-            return res.status(404).json({error: "Livro não encontrado"});
+        if (!book) {
+            return error(res, "Livro não encontrado", 404);
         }
 
-        // Verificar se o usuário está tentando solicitar seu próprio livro
-        if(book.userId === userIdNumber){
-            return res.status(400).json({error: "Voçê não pode solicitar seu próprio livro"});
+        // Não pode solicitar próprio livro
+        if (book.userId === userIdNumber) {
+            return error(res, "Você não pode solicitar seu próprio livro", 400);
         }
 
-        // Verificar se o livro está disponível para requisição
-        if(book.status !== "AVAILABLE"){
-            return res.status(400).json({error: "Este livro não disponível para requisição"});
+        // Regras de status
+        if (book.status === "REQUESTED") {
+            return error(res, "Este livro já está em processo de doação", 400);
+        }
+
+        if (book.status === "DONATED") {
+            return error(res, "Este livro já foi doado", 400);
         }
 
         const request = await prisma.request.create({
@@ -46,24 +52,26 @@ export const createRequest = async (req, res) => {
             }
         });
 
-        return res.status(201).json(request);
+        return success(res, "Requisição criada com sucesso", request, 201);
 
-    } catch (error) {
-        if(error.code === "P2002"){
-            return res.status(400).json({error: "Você já solicitou este livro"});
+    } catch (err) {
+        console.error(err);
+
+        if (err.code === "P2002") {
+            return error(res, "Você já solicitou este livro", 400);
         }
 
-        return res.status(500).json({error: "Erro interno do servidor"});
+        return error(res, "Erro interno do servidor", 500);
     }
-}
+};
 
-// Controlador para aceitar uma requisição de livro
+// ACCEPT REQUEST
 export async function acceptRequest(req, res) {
     try {
         const id = Number(req.params.id);
 
         if (isNaN(id)) {
-            return res.status(400).json({ error: "ID deve ser um número" });
+            return error(res, "ID inválido", 400);
         }
 
         const request = await prisma.request.findUnique({
@@ -72,162 +80,150 @@ export async function acceptRequest(req, res) {
                 user: true,
                 book: true
             }
-
         });
 
         if (!request) {
-            return res.status(404).json({ error: "Requisição não encontrada" });
+            return error(res, "Requisição não encontrada", 404);
         }
 
         if (request.status !== "PENDING") {
-            return res.status(400).json({ error: "Requisição já foi processada" });
+            return error(res, "Requisição já foi processada", 400);
         }
 
         if (request.book.status !== "AVAILABLE") {
-            return res.status(400).json({
-                error: "Este livro já está em processo ou foi doado"
-            });
+            return error(res, "Este livro já está em processo ou foi doado", 400);
         }
 
+        // aceita
         await prisma.request.update({
             where: { id },
             data: { status: "ACCEPTED" }
         });
 
+        // rejeita as outras
         await prisma.request.updateMany({
             where: {
                 bookId: request.bookId,
                 id: { not: id }
             },
-            data: {
-                status: "REJECTED"
-            }
+            data: { status: "REJECTED" }
         });
 
+        // atualiza livro
         await prisma.book.update({
             where: { id: request.bookId },
             data: { status: "REQUESTED" }
         });
 
-        return res.status(200).json({
-            message: "Requisição aceita com sucesso, demais foram canceladas",
-                request: {
-                id: request.id,
-                user: {
-                    id: request.user.id,
-                    name: request.user.name,
-                    phone: request.user.phone,
-                },
-                book: {
-                    id: request.book.id,
-                    title: request.book.title,
-                    author: request.book.author,
-                    descricao: request.book.description,
-                }
+        return success(res, "Requisição aceita com sucesso", {
+            requestId: request.id,
+            solicitante: {
+                id: request.user.id,
+                name: request.user.name,
+                phone: request.user.phone
+            },
+            livro: {
+                id: request.book.id,
+                title: request.book.title,
+                author: request.book.author
             }
         });
 
-    } catch (error) {
-        return res.status(500).json({ error: "Erro interno do servidor" });
+    } catch (err) {
+        console.error(err);
+        return error(res, "Erro interno do servidor", 500);
     }
 }
 
-// Controlador para rejeitar uma requisição de livro
+// REJECT REQUEST
 export async function rejectRequest(req, res) {
-    try{
+    try {
         const id = Number(req.params.id);
 
-        if(isNaN(id)){
-            return res.status(400).json({error: "ID deve ser um número"});
+        if (isNaN(id)) {
+            return error(res, "ID inválido", 400);
         }
 
         const request = await prisma.request.findUnique({
-            where: {id},
-            include: {
-                book: true
-            }
+            where: { id }
         });
 
-        if(!request){
-            return res.status(404).json({error: "Requisição não encontrada"});
+        if (!request) {
+            return error(res, "Requisição não encontrada", 404);
         }
 
-        if(request.status !== "PENDING"){
-            return res.status(400).json({error: "Requisição ja foi processada"});
+        if (request.status !== "PENDING") {
+            return error(res, "Requisição já foi processada", 400);
         }
 
         await prisma.request.update({
-            where: {id},
-            data: {
-                status: "REJECTED"
-            }
+            where: { id },
+            data: { status: "REJECTED" }
         });
 
-        return res.status(200).json({message: "Requisição rejeitada com sucesso"});
-    } catch (error) {
-        return res.status(500).json({error: "Erro interno do servidor"});
+        return success(res, "Requisição rejeitada com sucesso");
+
+    } catch (err) {
+        console.error(err);
+        return error(res, "Erro interno do servidor", 500);
     }
 }
 
-// Controlador para finalizar uma requisição de livro
+// FINALIZE REQUEST
 export async function finalizeRequest(req, res) {
-    try{
+    try {
         const id = Number(req.params.id);
 
-        if(isNaN(id)){
-            return res.status(400).json({error: "ID deve ser um número"});
+        if (isNaN(id)) {
+            return error(res, "ID inválido", 400);
         }
 
         const request = await prisma.request.findUnique({
-            where: {id},
+            where: { id },
             include: {
                 book: true,
                 user: true
             }
         });
 
-        if(!request){
-            return res.status(404).json({error: "Requisição não encontrada"});
+        if (!request) {
+            return error(res, "Requisição não encontrada", 404);
         }
 
-        if(request.status !== "ACCEPTED"){
-            return res.status(400).json({error: "Apenas requisições aceitas podem ser finalizadas"});
+        if (request.status !== "ACCEPTED") {
+            return error(res, "Apenas requisições aceitas podem ser finalizadas", 400);
         }
 
-        if(request.book.status !== "REQUESTED"){
-            return res.status(400).json({error: "Este livro não está em processamento de requisição"});
+        if (request.book.status !== "REQUESTED") {
+            return error(res, "Livro não está em processo de doação", 400);
         }
 
         await prisma.request.update({
-            where: {id},
-            data: {
-                status: "FINALIZED"
-            }
+            where: { id },
+            data: { status: "FINALIZED" }
         });
 
         await prisma.book.update({
-            where: {id: request.bookId},
-            data: {
-                status: "DONATED"
+            where: { id: request.bookId },
+            data: { status: "DONATED" }
+        });
+
+        return success(res, "Requisição finalizada com sucesso", {
+            requestId: request.id,
+            solicitante: {
+                id: request.user.id,
+                name: request.user.name,
+                phone: request.user.phone
+            },
+            livro: {
+                id: request.book.id,
+                title: request.book.title,
+                author: request.book.author
             }
         });
 
-        return res.status(200).json({message: "Requisição finalizada com sucesso", request: {
-            id: request.id,
-            user: {
-                id: request.user.id,
-                name: request.user.name,
-                phone: request.user.phone,
-            },
-            book: {
-                id: request.book.id,
-                title: request.book.title,
-                author: request.book.author,
-                descricao: request.book.description
-            }
-        }});
-    } catch (error) {
-        return res.status(500).json({error: "Erro interno do servidor"});
+    } catch (err) {
+        console.error(err);
+        return error(res, "Erro interno do servidor", 500);
     }
 }
-

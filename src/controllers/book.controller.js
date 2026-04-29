@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { success, error } from "../utils/response.js";
 const prisma = new PrismaClient();
 
 // Controlador para criar um novo livro - CREATE
@@ -7,18 +8,18 @@ export async function createBook(req, res) {
         const { title, author, publicationDate, genre, isbn, description, status, userId } = req.body;
 
         if(!title || !author || !publicationDate || !isbn || !genre || !userId){
-            return res.status(400).json({ error: "Título, autor, data de publicação, gênero, ISBN e ID do usuário são obrigatórios" });
+            return error(res, "Título, autor, data de publicação, gênero, ISBN e ID do usuário são obrigatórios", 400);
         }
 
         const userIdNumber = Number(userId);
         if(isNaN(userIdNumber)){
-            return res.status(400).json({ error: "ID do usuário inválido" });
+            return error(res, "ID do usuário inválido", 400);
         }
 
         const user = await prisma.user.findUnique({ where: { id: userIdNumber } });
 
         if(!user){
-            return res.status(404).json({ error: "Usuário não encontrado" });
+            return error(res, "Usuário não encontrado", 404);
         }
 
         const book = await prisma.book.create({
@@ -34,11 +35,11 @@ export async function createBook(req, res) {
             }
         });
 
-        return res.status(201).json(book);
+        return success(res, "Livro criado com sucesso", book, 201);
 
-    } catch (error) {
-        console.error("Erro ao criar livro:", error);
-        return res.status(500).json({ error: "Erro interno do servidor" });
+    } catch (err) {
+        console.error("Erro ao criar livro:", err);
+        return error(res, "Erro interno do servidor", 500);
     }
 }
 
@@ -46,10 +47,10 @@ export async function createBook(req, res) {
 export async function getAllBooks(req, res) {
     try{
         const books = await prisma.book.findMany({include : { user: true }});
-        return res.status(200).json(books); 
-    } catch (error) {
-        console.error("Erro ao obter livros:", error);
-        return res.status(500).json({ error: "Erro interno do servidor" });
+        return success(res, "Livros encontrados", books);
+    } catch (err) {
+        console.error("Erro ao obter livros:", err  );
+        return error(res, "Erro interno do servidor", 500);
     }
 }
 
@@ -59,7 +60,7 @@ export async function getBookById(req, res) {
         const id = Number(req.params.id);
 
         if(isNaN(id)){
-            return res.status(400).json({ error: "ID inválido" });
+            return error(res, "ID inválido", 400    );
         }
 
         const book = await prisma.book.findUnique({ where: { id: parseInt(id) }, 
@@ -71,13 +72,13 @@ export async function getBookById(req, res) {
         }} });
 
         if(!book){
-            return res.status(404).json({ error: "Livro não encontrado" });
+            return error(res, "Livro não encontrado", 404);
         }
 
-        return res.status(200).json(book);
-    } catch (error) {
-        console.error("Erro ao obter livro:", error);
-        return res.status(500).json({ error: "Erro interno do servidor" });
+        return success(res, "Livro encontrado", book);
+    } catch (err) {
+        console.error("Erro ao obter livro:", err);
+        return error(res, "Erro interno do servidor", 500);
     }
 }
 
@@ -87,14 +88,14 @@ export async function updateBook(req, res) {
         const id = Number(req.params.id);
 
         if(isNaN(id)){
-            return res.status(400).json({ error: "ID inválido" });
+            return error(res, "ID inválido", 400);
         }
 
         const { title, author, publicationDate, genre, isbn, description, status } = req.body;
         const book = await prisma.book.findUnique({ where: { id: parseInt(id) } });
 
         if(!book){
-            return res.status(404).json({ error: "Livro não encontrado" });
+            return error(res, "Livro não encontrado", 404);
         }
 
         const updatedBook = await prisma.book.update({
@@ -110,11 +111,11 @@ export async function updateBook(req, res) {
             }
         });
 
-        return res.status(200).json(updatedBook);
+        return success(res, "Livro atualizado com sucesso", updatedBook);
 
-    } catch (error) {
-        console.error("Erro ao atualizar livro:", error);
-        return res.status(500).json({ error: "Erro interno do servidor" });
+    } catch (err) {
+        console.error("Erro ao atualizar livro:", err);
+        return error(res, "Erro interno do servidor", 500);
     }
 }
 
@@ -124,7 +125,7 @@ export async function deleteBook(req, res) {
         const id = Number(req.params.id); 
 
         if (isNaN(id)) {
-            return res.status(400).json({ error: "ID inválido" });
+            return error(res, "ID inválido", 400);
         }
 
         const book = await prisma.book.findUnique({
@@ -132,30 +133,30 @@ export async function deleteBook(req, res) {
         });
 
         if (!book) {
-            return res.status(404).json({ error: "Livro não encontrado" });
+            return error(res, "Livro não encontrado", 404);
         }
 
         if (book.status === "DONATED") {
-            return res.status(400).json({
-                error: "Não é possível deletar um livro doado"
-            });
-        }
+            return error(res, "Não é possível deletar um livro doado", 400);
+            };
+
+        if (book.status === "REQUESTED") {
+            return error(res, "Livro está em processo de doação", 400);
+}
 
         await prisma.book.delete({
             where: { id }
         });
 
-        return res.status(200).json({
-            message: "Livro deletado com sucesso"
-        });
+        return success(res, "Livro deletado com sucesso");
 
-    } catch (error) {
+    } catch (err) {
 
-        if (error.code === "P2025") {
-            return res.status(404).json({ error: "Livro não encontrado" });
+        if (err.code === "P2025") {
+            return error(res, "Livro não encontrado", 404);
         }
 
-        return res.status(500).json({ error: "Erro interno do servidor" });
+        return error(res, "Erro interno do servidor", 500 );
     }
 }
 

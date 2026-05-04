@@ -227,3 +227,93 @@ export async function finalizeRequest(req, res) {
         return error(res, "Erro interno do servidor", 500);
     }
 }
+
+// GET REQUESTS BY BOOK
+export async function getRequestsByBook(req, res) {
+    try{
+        const bookId = Number(req.params.bookId);
+
+        if (isNaN(bookId)) {
+            return error(res, "ID do livro inválido", 400);
+        }
+
+        const requests = await prisma.request.findMany({
+            where: { bookId },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        phone: true
+                    }
+                }
+            },
+            orderBy: { createdAt: "desc" }
+        });
+
+        return success(res, "Requisições do livro retornadas com sucesso", requests);
+    } catch (err) {
+        console.error(err);
+        return error(res, "Erro interno do servidor", 500);
+    }
+}
+
+// GET REQUESTS BY USER
+export async function getRequestsByUser(req, res) {
+    try{
+        const userId = Number(req.params.userId);
+
+        if (isNaN(userId)) {
+            return error(res, "ID do usuário inválido", 400);
+        }
+
+        const requests = await prisma.request.findMany({
+            where: { userId },
+            include: {
+                book: {
+                    select: {
+                        id: true,
+                        title: true,
+                        author: true
+                    }
+                }
+            },
+            orderBy: { createdAt: "desc" }
+        });
+
+        return success(res, "Requisições do usuário retornadas com sucesso", requests);
+    } catch (err) {
+        console.error(err);
+        return error(res, "Erro interno do servidor", 500);
+    }
+}
+
+// GET ALL REQUESTS
+export async function getAllRequests(req, res) {
+    try{
+        const requests = await prisma.request.findMany({
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        phone: true
+                    }
+                },
+                book: {
+                    select: {
+                        id: true,
+                        title: true,
+                        author: true
+                    }
+                }
+            },
+            orderBy: { createdAt: "asc" }
+        });
+
+        return success(res, "Todas as requisições retornadas com sucesso", requests);
+    } catch (err) {
+        console.error(err);
+        return error(res, "Erro interno do servidor", 500);
+    }
+}

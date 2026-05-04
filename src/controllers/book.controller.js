@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { success, error } from "../utils/response.js";
+import { success, error, parseDateBR } from "../utils/response.js";
 const prisma = new PrismaClient();
 
 // Controlador para criar um novo livro - CREATE
@@ -9,6 +9,12 @@ export async function createBook(req, res) {
 
         if(!title || !author || !publicationDate || !isbn || !genre || !userId){
             return error(res, "Título, autor, data de publicação, gênero, ISBN e ID do usuário são obrigatórios", 400);
+        }
+
+       const parsedDate = parseDateBR(publicationDate);
+
+        if (!parsedDate) {
+            return error(res, "Data inválida. Use DD/MM/AAAA", 400);
         }
 
         const userIdNumber = Number(userId);
@@ -26,7 +32,7 @@ export async function createBook(req, res) {
             data: {
                 title,
                 author,
-                publicationDate,
+                publicationDate: parsedDate,
                 genre,
                 isbn,
                 description,
@@ -94,6 +100,16 @@ export async function updateBook(req, res) {
         const { title, author, publicationDate, genre, isbn, description, status } = req.body;
         const book = await prisma.book.findUnique({ where: { id: parseInt(id) } });
 
+        let parsedDate;
+
+        if (publicationDate) {
+            parsedDate = parseDateBR(publicationDate);
+
+            if (!parsedDate) {
+                return error(res, "Data inválida. Use DD/MM/AAAA", 400);
+            }
+        }
+
         if(!book){
             return error(res, "Livro não encontrado", 404);
         }
@@ -103,7 +119,7 @@ export async function updateBook(req, res) {
             data: {
                 title,
                 author,
-                publicationDate,
+                publicationDate : parsedDate,
                 genre,
                 isbn,
                 description,

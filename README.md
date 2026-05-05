@@ -65,7 +65,10 @@ Foram escolhidos três endpoints principais para demonstrar o fluxo do sistema:
 
 ### 1. Criar Usuário – `POST /users`
 Entrada:
-![Criar Usuário - Postman](./images/postman-create-user.png)
+<img width="1471" height="553" alt="Captura de tela 2026-05-05 100429" src="https://github.com/user-attachments/assets/86564065-e1c4-442f-b4cc-49d3287b0b42" />
+Saida: 
+<img width="1472" height="730" alt="Captura de tela 2026-05-05 100445" src="https://github.com/user-attachments/assets/f0b3c607-5b4d-4adf-99e2-a101f82e7820" />
+
 
 
 

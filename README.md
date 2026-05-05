@@ -35,7 +35,7 @@ O sistema é composto por três entidades principais:
 ### 🔗 Diagrama Simplificado
 ## 🏗️ Arquitetura da Solução
 
-![Architecture Diagram].(public/diagramaSimplificado.drawio.png)
+![Architecture Diagram](public/diagrama.drawio.png)
 
 
 

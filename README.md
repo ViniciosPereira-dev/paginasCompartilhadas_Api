@@ -84,7 +84,7 @@ Saida:
 A organização do desenvolvimento foi feita utilizando o **Jira**, com backlog, tarefas e sprints.  
 Cada integrante ficou responsável por atividades específicas, e o quadro foi usado para acompanhar o progresso em tempo real.
 
-🔗 [Acesse o Board do Jira]([https://link-do-seu-jira](https://gabrielgimenesvot.atlassian.net/jira/software/projects/SCRUM/boards/1))
+🔗 [Acesse o Board do Jira]([https://link-do-seu-jira](https://gabrielgimenesvot.atlassian.net/jira/software/projects/SCRUM/boards/1)
 
 ---
 
@@ -98,7 +98,7 @@ Toda a documentação do projeto está estruturada no **Confluence**, incluindo:
 
 Essa documentação apoia o entendimento e a manutenção futura do sistema.
 
-🔗 [Acesse a Documentação no Confluence]([https://link-do-seu-confluence](https://gabrielgimenesvot.atlassian.net/wiki/spaces/PC/pages/25919489/ndice))
+🔗 [Acesse a Documentação no Confluence]([https://link-do-seu-confluence](https://gabrielgimenesvot.atlassian.net/wiki/spaces/PC/pages/25919489/ndice)
 
 ---
 

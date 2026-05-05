@@ -69,6 +69,12 @@ Entrada:
 Saida: 
 <img width="1472" height="730" alt="Captura de tela 2026-05-05 100445" src="https://github.com/user-attachments/assets/f0b3c607-5b4d-4adf-99e2-a101f82e7820" />
 
+### 1. Listar Livros – `GET /books`
+Saida:
+<img width="1463" height="744" alt="Captura de tela 2026-05-05 101334" src="https://github.com/user-attachments/assets/8b321aad-c912-4bba-b824-48a23aff183b" />
+
+
+
 
 
 

@@ -69,9 +69,17 @@ Entrada:
 Saida: 
 <img width="1472" height="730" alt="Captura de tela 2026-05-05 100445" src="https://github.com/user-attachments/assets/f0b3c607-5b4d-4adf-99e2-a101f82e7820" />
 
-### 1. Listar Livros – `GET /books`
+### 2. Listar Livros – `GET /books`
 Saida:
 <img width="1463" height="744" alt="Captura de tela 2026-05-05 101334" src="https://github.com/user-attachments/assets/8b321aad-c912-4bba-b824-48a23aff183b" />
+
+### 2. Solicitar Livros – `POST /requests`
+Entrada: 
+<img width="1468" height="600" alt="Captura de tela 2026-05-05 101655" src="https://github.com/user-attachments/assets/1217ff94-d86d-42a6-b51d-91f24dcc0c3e" />
+Saida:
+<img width="1462" height="737" alt="Captura de tela 2026-05-05 101835" src="https://github.com/user-attachments/assets/df6e6b64-dbfb-45ea-916c-323e14e87616" />
+
+
 
 
 

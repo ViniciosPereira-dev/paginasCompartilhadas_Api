@@ -33,6 +33,9 @@ O sistema é composto por três entidades principais:
 - **Requisição (Request)** → conecta usuário e livro, controlando o fluxo da doação.  
 
 ### 🔗 Diagrama Simplificado
+## 🏗️ Arquitetura da Solução
+
+![Diagrama da Arquitetura](./public/diagramaSimplificado.drawio.png)
 
 
 

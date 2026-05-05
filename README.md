@@ -64,7 +64,9 @@ A seguir, alguns exemplos de requisições realizadas via **Postman**, evidencia
 Foram escolhidos três endpoints principais para demonstrar o fluxo do sistema:
 
 ### 1. Criar Usuário – `POST /users`
-Entrada:<img width="1471" height="553" alt="Captura de tela 2026-05-05 100429" src="https://github.com/user-attachments/assets/0356a12d-09b5-469d-a058-5aa2be74df9e" />
+Entrada:
+![Criar Usuário - Postman](./images/postman-create-user.png)
+
 
 
 

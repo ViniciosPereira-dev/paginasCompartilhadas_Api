@@ -21,4 +21,42 @@ Criamos uma plataforma web que:
 - Facilita a solicitação de livros por outros usuários.  
 - Garante organização e transparência por meio de um fluxo de requisição com status (PENDING, ACCEPTED, REJECTED, FINALIZED).  
 - Utiliza o WhatsApp como canal externo de comunicação para combinar a entrega.  
-- Inclui um **microserviço de recomendação**, que sugere livros disponíveis de forma aleatória ou filtrada por gênero, tornando a experiência mais dinâmica.  
+- Inclui um **microserviço de recomendação**, que sugere livros disponíveis de forma aleatória ou filtrada por gênero, tornando a experiência mais dinâmica. 
+
+## 🏗️ Arquitetura da Solução
+
+A aplicação foi desenvolvida em **Node.js** com **Express** e utiliza o **Prisma ORM** para comunicação com o banco de dados.  
+O sistema é composto por três entidades principais:
+
+- **Usuário (User)** → ponto central da aplicação, responsável por cadastrar e solicitar livros.  
+- **Livro (Book)** → recurso disponibilizado para doação.  
+- **Requisição (Request)** → conecta usuário e livro, controlando o fluxo da doação.  
+
+### 🔗 Diagrama Simplificado
+
+
+
+Fluxo: **Usuário cria conta → cadastra livro → outro usuário solicita → requisição conecta os dois → status controla o processo.**
+
+---
+
+## ⚙️ Microsserviço de Recomendação
+
+O sistema conta com um **microsserviço independente**, responsável por recomendar livros disponíveis, podendo filtrar por gênero.  
+Ele roda em outra porta e consulta a API principal para buscar os livros cadastrados.
+
+- **Entrada**: requisição para `/recommendation?genre=...`  
+- **Processo**: consulta a API principal, filtra livros com status `AVAILABLE` e seleciona um aleatório.  
+- **Saída**: retorna dados do livro recomendado e informações do dono (nome e telefone).  
+
+📂 Repositório do Microsserviço: [PaginasCompartilhadas-Recommendation](https://github.com/seuusuario/paginascompartilhadas-recommendation)
+  
+
+### 🎯 Justificativa da Arquitetura
+A escolha por microsserviço foi feita para:
+- Garantir **modularidade**: recomendação funciona separada da API principal.  
+- Facilitar **escalabilidade**: pode ser expandido ou substituído sem impactar o núcleo da aplicação.  
+- Demonstrar **boas práticas** de arquitetura distribuída.  
+
+
+

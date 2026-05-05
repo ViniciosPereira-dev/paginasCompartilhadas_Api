@@ -51,11 +51,27 @@ export async function createBook(req, res) {
 
 // Controlador para obter todos os livros - READ
 export async function getAllBooks(req, res) {
-    try{
-        const books = await prisma.book.findMany({include : { user: true }});
+    try {
+        const books = await prisma.book.findMany({
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        age: true,
+                        gender: true,
+                        phone: true,
+                        createdAt: true
+                        // NÃO inclui password
+                    }
+                }
+            }
+        });
+
         return success(res, "Livros encontrados", books);
     } catch (err) {
-        console.error("Erro ao obter livros:", err  );
+        console.error("Erro ao obter livros:", err);
         return error(res, "Erro interno do servidor", 500);
     }
 }

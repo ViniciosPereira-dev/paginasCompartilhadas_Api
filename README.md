@@ -49,7 +49,7 @@ Ele roda em outra porta e consulta a API principal para buscar os livros cadastr
 - **Processo**: consulta a API principal, filtra livros com status `AVAILABLE` e seleciona um aleatório.  
 - **Saída**: retorna dados do livro recomendado e informações do dono (nome e telefone).  
 
-📂 Repositório do Microsserviço: [PaginasCompartilhadas-Recommendation](https://github.com/seuusuario/paginascompartilhadas-recommendation)
+📂 Repositório do Microsserviço: [PaginasCompartilhadas-Recommendation](https://github.com/ViniciosPereira-dev/recommendationsService)
   
 
 ### 🎯 Justificativa da Arquitetura

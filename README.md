@@ -73,11 +73,39 @@ Saida:
 Saida:
 <img width="1463" height="744" alt="Captura de tela 2026-05-05 101334" src="https://github.com/user-attachments/assets/8b321aad-c912-4bba-b824-48a23aff183b" />
 
-### 2. Solicitar Livros – `POST /requests`
+### 3. Solicitar Livros – `POST /requests`
 Entrada: 
 <img width="1468" height="600" alt="Captura de tela 2026-05-05 101655" src="https://github.com/user-attachments/assets/1217ff94-d86d-42a6-b51d-91f24dcc0c3e" />
 Saida:
 <img width="1462" height="737" alt="Captura de tela 2026-05-05 101835" src="https://github.com/user-attachments/assets/df6e6b64-dbfb-45ea-916c-323e14e87616" />
+
+## 📋 Gestão do Projeto com Jira
+
+A organização do desenvolvimento foi feita utilizando o **Jira**, com backlog, tarefas e sprints.  
+Cada integrante ficou responsável por atividades específicas, e o quadro foi usado para acompanhar o progresso em tempo real.
+
+🔗 [Acesse o Board do Jira]([https://link-do-seu-jira](https://gabrielgimenesvot.atlassian.net/jira/software/projects/SCRUM/boards/1))
+
+---
+
+## 📑 Documentação com Confluence
+
+Toda a documentação do projeto está estruturada no **Confluence**, incluindo:  
+- Descrição do projeto  
+- Arquitetura da solução  
+- Documentação da API  
+- Regras de negócio  
+
+Essa documentação apoia o entendimento e a manutenção futura do sistema.
+
+🔗 [Acesse a Documentação no Confluence]([https://link-do-seu-confluence](https://gabrielgimenesvot.atlassian.net/wiki/spaces/PC/pages/25919489/ndice))
+
+---
+
+## ✅ Encerramento
+
+O projeto entregou uma plataforma funcional de doação de livros, com API robusta, microsserviço de recomendação e gestão ágil.  
+Como próximos passos, pensamos em evoluir para notificações automáticas e integração com outros canais, ampliando o acesso à leitura e fortalecendo a comunidade de leitores.
 
 
 

@@ -63,7 +63,6 @@ export async function getAllBooks(req, res) {
                         gender: true,
                         phone: true,
                         createdAt: true
-                        // NÃO inclui password
                     }
                 }
             }

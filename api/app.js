@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import path from "path";
+import { swaggerUi, specs } from "./src/config/swagger.js";
 
 //Rotas
 import userRoutes from "./src/routes/user.routes.js";
@@ -17,6 +18,8 @@ app.use(express.static("public"));
 app.use("/users", userRoutes);
 app.use("/books", bookRoutes);
 app.use("/requests", requestRoutes);
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 app.get("/", (req, res) => {
   res.send("Servidor rodando");

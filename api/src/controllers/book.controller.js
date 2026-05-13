@@ -56,13 +56,8 @@ export async function getAllBooks(req, res) {
             include: {
                 user: {
                     select: {
-                        id: true,
                         name: true,
-                        email: true,
-                        age: true,
-                        gender: true,
                         phone: true,
-                        createdAt: true
                     }
                 }
             }

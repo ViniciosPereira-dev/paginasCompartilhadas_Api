@@ -1,4 +1,8 @@
 export function validateApiKey(req, res, next) {
+
+    console.log("MIDDLEWARE EXECUTOU");
+    console.log("HEADER:", req.headers["x-api-key"]);
+
     const apiKey = req.headers["x-api-key"];
 
     if (!apiKey) {

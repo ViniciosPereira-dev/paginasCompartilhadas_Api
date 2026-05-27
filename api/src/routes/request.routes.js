@@ -1,6 +1,6 @@
 import { Router } from "express";
 import * as requestController from "../controllers/request.controller.js";
-import { validateApiKey } from "../middlewares/apiKey.middleware.js";
+import { verificarToken } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -8,15 +8,20 @@ const router = Router();
  * @swagger
  * tags:
  *   name: Requests
- *   description: Gerenciamento de solicitações de empréstimo
+ *   description: Gerenciamento e fluxo de solicitações de doação de livros
  */
+
+// Aplica o middleware verificarToken em todas as rotas abaixo
+router.use(verificarToken);
 
 /**
  * @swagger
  * /requests:
  *   post:
- *     summary: Cria uma nova solicitação de empréstimo
+ *     summary: Cria uma nova solicitação de doação para um livro
  *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -24,12 +29,8 @@ const router = Router();
  *           schema:
  *             type: object
  *             required:
- *               - userId
  *               - bookId
  *             properties:
- *               userId:
- *                 type: integer
- *                 example: 1
  *               bookId:
  *                 type: integer
  *                 example: 2
@@ -37,7 +38,9 @@ const router = Router();
  *       201:
  *         description: Solicitação criada com sucesso
  *       400:
- *         description: Dados inválidos ou solicitação já existente
+ *         description: Dados inválidos, livro indisponível ou tentativa de solicitar o próprio livro
+ *       401:
+ *         description: Não autenticado
  */
 router.post("/", requestController.createRequest);
 
@@ -45,8 +48,10 @@ router.post("/", requestController.createRequest);
  * @swagger
  * /requests/accept/{id}:
  *   post:
- *     summary: Aceita uma solicitação
+ *     summary: Aceita uma solicitação recebida (Apenas o dono do livro)
  *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -56,8 +61,10 @@ router.post("/", requestController.createRequest);
  *         example: 1
  *     responses:
  *       200:
- *         description: Solicitação aceita com sucesso
- *       404:
+ *         description: Solicitação aceita com sucesso e concorrentes rejeitadas
+ *       403:
+ *         description: Acesso negado (Você não é o dono do livro)
+ *       44:
  *         description: Solicitação não encontrada
  */
 router.post("/accept/:id", requestController.acceptRequest);
@@ -66,8 +73,10 @@ router.post("/accept/:id", requestController.acceptRequest);
  * @swagger
  * /requests/reject/{id}:
  *   post:
- *     summary: Rejeita uma solicitação
+ *     summary: Rejeita uma solicitação recebida (Apenas o dono do livro)
  *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -78,8 +87,8 @@ router.post("/accept/:id", requestController.acceptRequest);
  *     responses:
  *       200:
  *         description: Solicitação rejeitada com sucesso
- *       404:
- *         description: Solicitação não encontrada
+ *       403:
+ *         description: Acesso negado
  */
 router.post("/reject/:id", requestController.rejectRequest);
 
@@ -87,8 +96,10 @@ router.post("/reject/:id", requestController.rejectRequest);
  * @swagger
  * /requests/finalize/{id}:
  *   post:
- *     summary: Finaliza uma solicitação
+ *     summary: Finaliza o processo de doação de um livro (Apenas o dono do livro)
  *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -98,9 +109,9 @@ router.post("/reject/:id", requestController.rejectRequest);
  *         example: 1
  *     responses:
  *       200:
- *         description: Solicitação finalizada com sucesso
- *       404:
- *         description: Solicitação não encontrada
+ *         description: Doação finalizada com sucesso e status do livro atualizado para doado
+ *       403:
+ *         description: Acesso negado
  */
 router.post("/finalize/:id", requestController.finalizeRequest);
 
@@ -108,8 +119,10 @@ router.post("/finalize/:id", requestController.finalizeRequest);
  * @swagger
  * /requests/book/{bookId}:
  *   get:
- *     summary: Lista solicitações de um livro
+ *     summary: Lista todas as solicitações de interessados em um livro específico (Apenas o dono do livro)
  *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: bookId
@@ -119,42 +132,39 @@ router.post("/finalize/:id", requestController.finalizeRequest);
  *         example: 1
  *     responses:
  *       200:
- *         description: Solicitações encontradas com sucesso
- *       404:
- *         description: Livro não encontrado
+ *         description: Lista de requisições retornada com sucesso
+ *       403:
+ *         description: Acesso negado
  */
 router.get("/book/:bookId", requestController.getRequestsByBook);
 
 /**
  * @swagger
- * /requests/user/{userId}:
+ * /requests/user:
  *   get:
- *     summary: Lista solicitações de um usuário
+ *     summary: Lista todas as solicitações enviadas pelo usuário logado atualmente
  *     tags: [Requests]
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: integer
- *         example: 1
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Solicitações encontradas com sucesso
- *       404:
- *         description: Usuário não encontrado
+ *         description: Suas solicitações foram recuperadas com sucesso
+ *       401:
+ *         description: Não autenticado
  */
-router.get("/user/:userId", requestController.getRequestsByUser);
+router.get("/user", requestController.getRequestsByUser);
 
 /**
  * @swagger
  * /requests:
  *   get:
- *     summary: Lista todas as solicitações
+ *     summary: Lista todas as solicitações registradas no sistema global
  *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Lista de solicitações retornada com sucesso
+ *         description: Histórico global retornado com sucesso
  */
 router.get("/", requestController.getAllRequests);
 

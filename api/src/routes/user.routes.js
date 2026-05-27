@@ -1,6 +1,6 @@
 import { Router } from "express";
 import * as userController from "../controllers/user.controller.js";
-import { validateApiKey } from "../middlewares/apiKey.middleware.js";
+import { verificarToken } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -8,7 +8,7 @@ const router = Router();
  * @swagger
  * tags:
  *   name: Users
- *   description: Gerenciamento de usuários
+ *   description: Gerenciamento de usuários e autenticação
  */
 
 /**
@@ -33,16 +33,16 @@ const router = Router();
  *             properties:
  *               name:
  *                 type: string
- *                 example: João Silva
+ *                 example: Thiago Silva
  *               email:
  *                 type: string
- *                 example: joaoRosa@email.com
+ *                 example: thiago@email.com
  *               password:
  *                 type: string
- *                 example: 123456
+ *                 example: minhasenha123
  *               age:
  *                 type: integer
- *                 example: 25
+ *                 example: 28
  *               gender:
  *                 type: string
  *                 example: Masculino
@@ -59,15 +59,49 @@ router.post("/", userController.createUser);
 
 /**
  * @swagger
+ * /users/login:
+ *   post:
+ *     summary: Realiza o login do usuário e gera o token JWT
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: thiago@email.com
+ *               password:
+ *                 type: string
+ *                 example: minhasenha123
+ *     responses:
+ *       200:
+ *         description: Login realizado com sucesso
+ *       401:
+ *         description: Credenciais inválidas
+ */
+router.post("/login", userController.loginUser);
+
+/**
+ * @swagger
  * /users:
  *   get:
  *     summary: Lista todos os usuários
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Lista de usuários retornada com sucesso
+ *       401:
+ *         description: Token não fornecido ou inválido
  */
-router.get("/", userController.findAllUsers);
+router.get("/", verificarToken, userController.findAllUsers);
 
 /**
  * @swagger
@@ -75,20 +109,19 @@ router.get("/", userController.findAllUsers);
  *   get:
  *     summary: Busca um usuário pelo ID
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         schema:
  *           type: integer
- *         example: 1
  *     responses:
  *       200:
  *         description: Usuário encontrado
- *       404:
- *         description: Usuário não encontrado
  */
-router.get("/:id", userController.findUserById);
+router.get("/:id", verificarToken, userController.findUserById);
 
 /**
  * @swagger
@@ -96,13 +129,14 @@ router.get("/:id", userController.findUserById);
  *   put:
  *     summary: Atualiza um usuário
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         schema:
  *           type: integer
- *         example: 1
  *     requestBody:
  *       required: true
  *       content:
@@ -112,20 +146,13 @@ router.get("/:id", userController.findUserById);
  *             properties:
  *               name:
  *                 type: string
- *                 example: João Atualizado
  *               email:
  *                 type: string
- *                 example: novoemail@email.com
- *               phone:
- *                 type: string
- *                 example: 15988888888
  *     responses:
  *       200:
- *         description: Usuário atualizado com sucesso
- *       404:
- *         description: Usuário não encontrado
+ *         description: Usuário atualizado
  */
-router.put("/:id", userController.updateUser);
+router.put("/:id", verificarToken, userController.updateUser);
 
 /**
  * @swagger
@@ -133,19 +160,18 @@ router.put("/:id", userController.updateUser);
  *   delete:
  *     summary: Remove um usuário
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         schema:
  *           type: integer
- *         example: 1
  *     responses:
  *       200:
- *         description: Usuário removido com sucesso
- *       404:
- *         description: Usuário não encontrado
+ *         description: Usuário removido
  */
-router.delete("/:id", userController.deleteUser);
+router.delete("/:id", verificarToken, userController.deleteUser);
 
 export default router;

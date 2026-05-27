@@ -2,7 +2,8 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import path from "path";
-import { swaggerUi, specs } from "./src/config/swagger.js";
+import swaggerUi from "swagger-ui-express";
+import { specs } from "./src/config/swagger.js";
 
 //Rotas
 import userRoutes from "./src/routes/user.routes.js";
@@ -12,10 +13,12 @@ import recommendationRoutes from "./src/routes/recommendation.routes.js";
 
 const app = express();
 
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());  
 app.use(express.static("public"));
+
 
 app.use("/users", userRoutes);
 app.use("/books", bookRoutes);

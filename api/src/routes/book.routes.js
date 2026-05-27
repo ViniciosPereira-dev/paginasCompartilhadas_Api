@@ -15,11 +15,47 @@ const router = Router();
 /**
  * @swagger
  * /books:
- *   post:
- *     summary: Cria um novo livro (Vincula ao usuário logado)
+ *   get:
+ *     summary: Lista todos os livros disponíveis
  *     tags: [Books]
  *     security:
- *       - bearerAuth: [] # <-- ATIVA O CADEADO JWT NESTA ROTA
+ *       - ApiKeyAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de livros retornada com sucesso
+ */
+router.get("/", validateApiKey, bookController.getAllBooks);
+
+/**
+ * @swagger
+ * /books/{id}:
+ *   get:
+ *     summary: Busca um livro pelo ID
+ *     tags: [Books]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Livro encontrado com sucesso
+ *       404:
+ *         description: Livro não encontrado
+ */
+router.get("/:id", validateApiKey, bookController.getBookById);
+
+/**
+ * @swagger
+ * /books:
+ *   post:
+ *     summary: Cria um novo livro vinculado ao usuário logado
+ *     tags: [Books]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -51,22 +87,23 @@ const router = Router();
  *               description:
  *                 type: string
  *                 example: Um clássico da fantasia
+ *               status:
+ *                 type: string
+ *                 example: DISPONIVEL
  *     responses:
  *       201:
  *         description: Livro criado com sucesso
  */
 router.post("/", verificarToken, bookController.createBook);
 
-// ... Mantenha as rotas GET /books e GET /books/:id originais com validateApiKey iguais você já tem
-
 /**
  * @swagger
  * /books/{id}:
  *   put:
- *     summary: Atualiza um livro (Apenas o proprietário)
+ *     summary: Atualiza um livro (apenas o proprietário)
  *     tags: [Books]
  *     security:
- *       - bearerAuth: [] # <-- ATIVA O CADEADO JWT NESTA ROTA
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -82,9 +119,25 @@ router.post("/", verificarToken, bookController.createBook);
  *             properties:
  *               title:
  *                 type: string
+ *               author:
+ *                 type: string
+ *               genre:
+ *                 type: string
+ *               isbn:
+ *                 type: string
+ *               publicationDate:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               status:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Livro atualizado com sucesso
+ *       403:
+ *         description: Usuário não autorizado
+ *       404:
+ *         description: Livro não encontrado
  */
 router.put("/:id", verificarToken, bookController.updateBook);
 
@@ -92,10 +145,10 @@ router.put("/:id", verificarToken, bookController.updateBook);
  * @swagger
  * /books/{id}:
  *   delete:
- *     summary: Remove um livro (Apenas o proprietário)
+ *     summary: Remove um livro (apenas o proprietário)
  *     tags: [Books]
  *     security:
- *       - bearerAuth: [] # <-- ATIVA O CADEADO JWT NESTA ROTA
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -105,6 +158,10 @@ router.put("/:id", verificarToken, bookController.updateBook);
  *     responses:
  *       200:
  *         description: Livro removido com sucesso
+ *       403:
+ *         description: Usuário não autorizado
+ *       404:
+ *         description: Livro não encontrado
  */
 router.delete("/:id", verificarToken, bookController.deleteBook);
 

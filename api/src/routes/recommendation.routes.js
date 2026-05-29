@@ -1,6 +1,5 @@
 import { Router } from "express";
 import axios from "axios";
-import { verificarToken } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -11,52 +10,41 @@ const router = Router();
  *   description: Consulta ao microsserviço de recomendações personalizadas
  */
 
-/**
- * @swagger
- * /recommendation:
- *   get:
- *     summary: Obtém recomendações de livros para o usuário logado
- *     tags: [Recommendations]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: genre
- *         schema:
- *           type: string
- *         description: Filtra as recomendações por um gênero literário específico
- *         example: Fantasia
- *     responses:
- *       200:
- *         description: Recomendações retornadas com sucesso pelo microsserviço
- *       401:
- *         description: Não autenticado (Token não fornecido ou inválido)
- *       500:
- *         description: Erro ao consultar o microsserviço de recomendações
- */
-router.get("/", verificarToken, async (req, res) => {
+router.get("/", async (req, res) => {
+    // Força o endereço do microsserviço caso a variável do .env falhe ou venha mal formatada
+    const urlServico = process.env.RECOMMENDATION_SERVICE_URL || "http://localhost:4000";
+
     try {
-        const userIdLogado = req.usuario.id;
+        console.log(`[API Principal] Tentando conectar ao microsserviço em: ${urlServico}/recommendation`);
 
         const response = await axios.get(
-            `${process.env.RECOMMENDATION_SERVICE_URL}/recommendation`,
+            `${urlServico}/recommendation`,
             {
-                params: {
-                    ...req.query,      
-                    userId: userIdLogado 
-                }
+                params: req.query, // Repassa o gênero (?genre=...) vindo do front-end
+                timeout: 5000 // Se o microsserviço travar por mais de 5 segundos, cancela a chamada
             }
         );
 
         return res.status(200).json(response.data);
 
     } catch (error) {
-        console.error("Erro ao consultar microsserviço:", error.message);
+        // DETALHAMENTO DE LOGS NO TERMINAL DA PORTA 3000:
+        console.error("====== ERRO NA CONSULTA AO MICROSSERVIÇO ======");
+        console.error("Mensagem do Erro:", error.message);
+        
+        if (error.response) {
+            // O microsserviço respondeu com um status fora do padrão 2xx
+            console.error("Status retornado pelo microsserviço (Porta 4000):", error.response.status);
+            console.error("Dados do erro do microsserviço:", error.response.data);
+            return res.status(error.response.status).json(error.response.data);
+        } else if (error.request) {
+            // A API principal tentou bater na porta 4000, mas o microsserviço não respondeu (está desligado)
+            console.error("O microsserviço na porta 4000 não respondeu. Certifique-se de que ele está rodando!");
+            return res.status(503).json({ error: "O microsserviço de recomendações parece estar desligado." });
+        }
 
-        const status = error.response ? error.response.status : 500;
-
-        return res.status(status).json({
-            error: "Erro ao consultar recomendações"
+        return res.status(500).json({
+            error: "Erro interno no servidor ao processar recomendações"
         });
     }
 });

@@ -24,7 +24,7 @@ const router = Router();
  *       200:
  *         description: Lista de livros retornada com sucesso
  */
-router.get("/", validateApiKey, bookController.getAllBooks);
+router.get("/",  bookController.getAllBooks);
 
 /**
  * @swagger
@@ -46,7 +46,7 @@ router.get("/", validateApiKey, bookController.getAllBooks);
  *       404:
  *         description: Livro não encontrado
  */
-router.get("/:id", validateApiKey, bookController.getBookById);
+router.get("/:id", bookController.getBookById);
 
 /**
  * @swagger
